@@ -16,3 +16,7 @@ The result of the compilation is found in the ```out/``` directory.
 
 
 SandTrap is set up to work as an npm module. Simply copy or link the main SandTrap directory to the node_modules of your project.
+
+### Manual ###
+
+See the [manual](./MANUAL.md) for usage information, information on the policy language and examples.
