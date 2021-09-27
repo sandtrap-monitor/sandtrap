@@ -226,7 +226,7 @@ global = this;
 
         if (hostEntity instanceof host.Function || typeof hostEntity === "function") {
             handler = ContextifyHandler.function(hostEntity, path, policy);
-            mime = new Function();
+            mime = function () {};
         } else if (hostEntity instanceof host.String) {
             handler = ContextifyHandler.object(hostEntity, path, policy);
             mime = new String();
@@ -1283,7 +1283,10 @@ global = this;
     ConnectPrimordial(Boolean, host.Boolean);
     ConnectPrimordial(Array, host.Array);
     ConnectPrimordial(Date, host.Date);
+
     ConnectPrimordial(Error, host.Error);
+    Object.freeze(Error);
+
     ConnectPrimordial(EvalError, host.EvalError);
     ConnectPrimordial(RangeError, host.RangeError);
     ConnectPrimordial(ReferenceError, host.ReferenceError);

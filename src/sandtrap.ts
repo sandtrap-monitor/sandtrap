@@ -1,6 +1,9 @@
 import * as vm from "vm";
 import * as fs from "fs";
 import * as path from "path";
+import * as acorn from "acorn";
+import * as walk from "acorn-walk";
+import { couldStartTrivia } from "typescript";
 
 export class SandTrap {
 
@@ -19,7 +22,7 @@ export class SandTrap {
         this.Policy = policy;
         this.Root = this.ComputeRoot(root);
 
-        let vmContext = vm.createContext({}, { codeGeneration: { strings: policy.AllowEval } });
+        let vmContext = vm.createContext({}, { codeGeneration: { strings: false, wasm: false} });
 
         // load the contextification functions
         let contextification = fs.readFileSync(path.join(__dirname, "contextification.js"), "utf8");
@@ -62,10 +65,31 @@ export class SandTrap {
 
     // ---
 
+    Verify(code : string) : boolean {
+        //@ts-ignore
+        let ast = acorn.parse(code, { ecmaVersion : "2020" });
+        var danger = false;
+
+        //@ts-ignore
+        walk.simple(ast, {
+            ImportExpression(node) {
+                danger = true;
+            },
+            ImportDeclaration(node) {
+                danger = true;
+            }
+          })
+          return !danger;
+    }
+
     Eval(code: string, policyName: string): any {
+        if (!this.Verify(code)) {
+            throw new SandTrapError("Unsupported instructions");
+        }
         if (policyName === undefined) {
             policyName = "SandTrap.Eval";
         }
+
         let script = new vm.Script(code);
         let policy = this.Policy.GetDecontextifyEntityPolicy(policyName);
         let result;
@@ -92,6 +116,10 @@ export class SandTrap {
     // --
 
     EvalAsModule(code: string, policyName: string, filename? : string): any {
+        if (!this.Verify(code)) {
+            throw new SandTrapError("Unsupported instructions");
+        }
+
         if (policyName === undefined) {
             policyName = "SandTrap.EvalAsModule";
         }
