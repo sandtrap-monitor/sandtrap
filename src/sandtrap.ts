@@ -51,6 +51,20 @@ export class SandTrap {
 
         this.Module = SandTrapModule;
         this.MakeRequireFunction = makeRequireFunction;
+
+        let _this = this;
+        let _eval = function _eval(code : string) {
+            code = String(code);
+            if (!_this.Verify(code)) {
+                throw new SandTrapError("Unsupported instructions");
+            }
+
+            let script = new vm.Script(code);
+            let result = script.runInContext(_this.Context);
+            return result;
+        }
+
+        this.ContextifyObject(_eval, "eval");
     }
 
     // ---
