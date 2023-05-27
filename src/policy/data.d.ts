@@ -51,8 +51,7 @@ interface PolicyDefaults {
 interface PolicyData {
     options : PolicyDefaults,
     onerror? : string, // silent, warn, throw
-    allowEval : boolean,
-
+    
     global: string,
 
     manifest : { [key: string]: string }

@@ -9,10 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/acorn": "^4.0.6",
     "@types/node": "^14.0.13",
     "@types/readline-sync": "^1.4.3",
-    "acorn": "^8.5.0",
+    "acorn": "^8.8.2",
     "acorn-walk": "^8.2.0",
     "json-beautify": "^1.1.1",
     "readline-sync": "^1.4.10",

@@ -47,6 +47,12 @@ global = this;
 
     }
 
+    let _Object = {
+        assign : Object.assign.bind(Object),
+        create : Object.create.bind(Object)
+    }
+
+
     /* Maps box -> host
     *   - box prim -> host prim
     *   - box -> Decon(box)
@@ -160,7 +166,7 @@ global = this;
         VERBOSE_DEBUG && DebugBegin("Decontextify.Descriptor BEGIN", path);
 
         // copy over the values into a local object
-        let hostDescriptor = Object.assign(new host.Object(), boxDescriptor);
+        let hostDescriptor = host.Object.assign(new host.Object(), boxDescriptor);
 
         if (boxDescriptor.value) {
             hostDescriptor.value = Decontextify(boxDescriptor.value, path, valuePolicy);
@@ -247,7 +253,7 @@ global = this;
 
         if (hostEntity instanceof host.Function || typeof hostEntity === "function") {
             handler = ContextifyHandler.function(hostEntity, path, policy);
-            mime = function () {};
+            mime = function () { };
         } else if (hostEntity instanceof host.String) {
             handler = ContextifyHandler.object(hostEntity, path, policy);
             mime = new String();
@@ -271,7 +277,7 @@ global = this;
             mime = new Object();
         }
 
-        
+
         let boxEntity = new host.Proxy(mime, handler);
         Contextified.set(hostEntity, boxEntity);
         Decontextified.set(boxEntity, hostEntity);
@@ -284,7 +290,7 @@ global = this;
         VERBOSE_DEBUG && DebugBegin("Contextify.Descriptor BEGIN", path);
 
         // copy over the values into a local object
-        let boxDescriptor = Object.assign({}, hostDescriptor);
+        let boxDescriptor = _Object.assign({}, hostDescriptor);
 
 
         if (hostDescriptor.value) {
@@ -292,7 +298,7 @@ global = this;
             VERBOSE_DEBUG && DebugEnd("Contextify.Descriptor END", path);
 
             return boxDescriptor;
-        }        
+        }
 
 
         if (hostDescriptor.get) {
@@ -342,14 +348,14 @@ global = this;
 
         let propPolicy = policy.GetProperty(p);
 
-        POLICY_DEBUG && Debug(`Decontextify policy for getOwnPropertyDescriptor of ${String(p)} on ${path} gives ${propPolicy.Read}`);
+        POLICY_DEBUG && Debug(`Decontextify policy for getOwnPropertyDescriptor of ${host.String(p)} on ${path} gives ${propPolicy.Read}`);
 
         if (!propPolicy.Read) {
             VERBOSE_DEBUG && DebugEnd("SyncAndContextifyOwnProperty END", p, path, "READ REFUSED");
             return false;
         }
 
-        let hostDescriptor = Decontextify.Descriptor(boxDescriptor, `${path}.${String(p)}`, propPolicy.ReadPolicy, propPolicy.getOwnPropertyDescriptorPolicy);
+        let hostDescriptor = Decontextify.Descriptor(boxDescriptor, `${path}.${host.String(p)}`, propPolicy.ReadPolicy, propPolicy.getOwnPropertyDescriptorPolicy);
         let hostResult = host.Reflect.defineProperty(hostMime, p, hostDescriptor);
 
         VERBOSE_DEBUG && DebugEnd("SyncAndDecontextifyOwnProperty END", p, path)
@@ -599,9 +605,9 @@ global = this;
                 // the hostMime and boxEntity are the same
 
                 let propPolicy = policy.GetProperty(p);
-                let boxValue = Contextify(hostValue, `${path}.${String(p)}`, propPolicy.WritePolicy);
+                let boxValue = Contextify(hostValue, `${path}.${host.String(p)}`, propPolicy.WritePolicy);
 
-                POLICY_DEBUG && Debug(`Decontextify policy for set of ${String(p)} on ${path} gives ${propPolicy.Write}`);
+                POLICY_DEBUG && Debug(`Decontextify policy for set of ${host.String(p)} on ${path} gives ${propPolicy.Write}`);
 
                 if (!propPolicy.Write) {
                     return false;
@@ -624,7 +630,7 @@ global = this;
                 VERBOSE_DEBUG && DebugBegin("Decontextify.deleteProperty BEGIN", p);
 
                 let propPolicy = policy.GetProperty(p);
-                POLICY_DEBUG && Debug(`Decontextify policy for delete of ${String(p)} on ${path} gives ${propPolicy.Write}`);
+                POLICY_DEBUG && Debug(`Decontextify policy for delete of ${host.String(p)} on ${path} gives ${propPolicy.Write}`);
 
                 if (!propPolicy.Write) {
                     return false;
@@ -652,13 +658,13 @@ global = this;
                 SyncAndDecontextifyOwnProperty(boxEntity, hostMime, p, path, policy);
 
                 let propPolicy = policy.GetProperty(p);
-                POLICY_DEBUG && Debug(`Decontextify policy for defineProperty of ${String(p)} on ${path} gives ${propPolicy.Read}`);
+                POLICY_DEBUG && Debug(`Decontextify policy for defineProperty of ${host.String(p)} on ${path} gives ${propPolicy.Read}`);
 
                 if (!propPolicy.Write) {
                     return false;
                 }
 
-                let boxDescriptor = Contextify.Descriptor(hostDescriptor, `${path}.${String(p)}`, propPolicy.WritePolicy, propPolicy.definePropertyDescriptor);
+                let boxDescriptor = Contextify.Descriptor(hostDescriptor, `${path}.${host.String(p)}`, propPolicy.WritePolicy, propPolicy.definePropertyDescriptor);
                 host.Reflect.defineProperty(boxEntity, p, boxDescriptor);
 
                 VERBOSE_DEBUG && DebugEnd("Decontextify.defineProperty END", p);
@@ -818,20 +824,20 @@ global = this;
             VERBOSE_DEBUG && DebugEnd("MaybeSyncAndContextifyOwnProperty END", p, path, "NO SUCH PROPERTY");
             return true;
         }
- 
+
 
         let propPolicy = policy.GetProperty(p);
-        POLICY_DEBUG && Debug(`Contextify pr getOwnPropertyDescriptor of ${String(p)} on ${path} gives ${propPolicy.Read}`);
+        POLICY_DEBUG && Debug(`Contextify pr getOwnPropertyDescriptor of ${host.String(p)} on ${path} gives ${propPolicy.Read}`);
 
-        
+
         if (!propPolicy.Read) {
             VERBOSE_DEBUG && DebugEnd("MaybeSyncAndContextifyOwnProperty END", p, path, "READ REFUSED");
             return false;
         }
-        
 
 
-        let boxDescriptor = Contextify.Descriptor(hostDescriptor, `${path}.${String(p)}`, propPolicy.ReadPolicy, propPolicy.getOwnPropertyDescriptorPolicy);
+
+        let boxDescriptor = Contextify.Descriptor(hostDescriptor, `${path}.${host.String(p)}`, propPolicy.ReadPolicy, propPolicy.getOwnPropertyDescriptorPolicy);
 
         let boxResult = host.Reflect.defineProperty(boxMime, p, boxDescriptor);
 
@@ -858,12 +864,12 @@ global = this;
         let propPolicy = policy.GetProperty("__proto__");
         POLICY_DEBUG && Debug(`Contextify pr getPrototypeOf on ${path} gives ${propPolicy.Read}`);
 
-        
+
         if (!propPolicy.Read) {
             VERBOSE_DEBUG && DebugEnd("MaybeSyncAndContextifyPrototype END", path, "READ REFUSED");
             return false;
         }
-        
+
 
         let boxProto = Contextify(hostProto, `${path}.__proto__`, propPolicy.ReadPolicy);
         let boxResult = host.Reflect.setPrototypeOf(boxMime, boxProto);
@@ -878,7 +884,7 @@ global = this;
     ContextifyHandler.object = (hostEntity: any, path: string, policy: IContextifyEntityPolicy) => {
 
         // TODO: perhaps cache the hostValue to see if we need to invalidate local modifications
-        let locallyDefined = Object.create(null);
+        let locallyDefined = _Object.create(null);
         let localProto = false;
 
         return {
@@ -891,16 +897,26 @@ global = this;
 
 
             getPrototypeOf: function getPrototypeOf(boxMime: object): object | null {
-                VERBOSE_DEBUG && DebugBegin("Contextify.getPrototypeOf BEGIN");
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.getPrototypeOf BEGIN");
 
-                if (localProto !== true) {
-                    MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
+                    if (localProto !== true) {
+                        MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
+                    }
+                    let boxProto = host.Reflect.getPrototypeOf(boxMime);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.getPrototypeOf END");
+
+                    return boxProto !== undefined ? boxProto : null;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.getProtorypeOf");
+                    } catch (e) {
+                        throw new Error("Contextify.object.getProtorypeOf, Internal Error");
+                    }
+                    throw be;
                 }
-                let boxProto = host.Reflect.getPrototypeOf(boxMime);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.getPrototypeOf END");
-
-                return boxProto !== undefined ? boxProto : null;
             },
 
             /*
@@ -910,22 +926,33 @@ global = this;
             */
 
             setPrototypeOf: function setPrototypeOf(boxMime: object, boxProto: any): boolean {
-                VERBOSE_DEBUG && DebugBegin("Contextify.setPrototypeOf BEGIN");
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.setPrototypeOf BEGIN");
 
-                let protoPolicy = policy.GetProperty("__proto__");
-                POLICY_DEBUG && Debug(`Contextify pr setPrototypeOf on ${path} gives ${protoPolicy.Write}`);
+                    let protoPolicy = policy.GetProperty("__proto__");
+                    POLICY_DEBUG && Debug(`Contextify pr setPrototypeOf on ${path} gives ${protoPolicy.Write}`);
 
-                if (!protoPolicy.Write) {
-                    localProto = true;
-                    let success = host.Reflect.setPrototypeOf(boxMime, boxProto);
+                    if (!protoPolicy.Write) {
+                        localProto = true;
+                        let success = host.Reflect.setPrototypeOf(boxMime, boxProto);
+                        return success;
+                    }
+
+                    let hostProto = Decontextify(boxProto, `${path}.__proto__`, protoPolicy.WritePolicy);
+                    let success = host.Reflect.setPrototypeOf(hostEntity, hostProto);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.setPrototypeOf END");
                     return success;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.setPrototypeOf");
+                    } catch (e) {
+                        throw new Error("Contextify.object.setPrototypeOf, Internal Error");
+                    }
+                    throw be;
                 }
 
-                let hostProto = Decontextify(boxProto, `${path}.__proto__`, protoPolicy.WritePolicy);
-                let success = host.Reflect.setPrototypeOf(hostEntity, hostProto);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.setPrototypeOf END");
-                return success;
             },
 
             /*
@@ -965,15 +992,25 @@ global = this;
             */
 
             getOwnPropertyDescriptor: function getOwnPropertyDescriptor(boxMime: object, p: PropertyKey): PropertyDescriptor | undefined {
-                VERBOSE_DEBUG && DebugBegin("Contextify.getOwnPropertyDescriptor BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.getOwnPropertyDescriptor BEGIN", p);
 
-                if (locallyDefined[p] !== true) {
-                    MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    if (locallyDefined[p] !== true) {
+                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    }
+                    let boxDescriptor = host.Reflect.getOwnPropertyDescriptor(boxMime, p);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.getOwnPropertyDescriptor END", p);
+                    return boxDescriptor;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.getOwnPropertyDescriptor");
+                    } catch (e) {
+                        throw new Error("Contextify.object.getOwnPropertyDescriptor, Internal Error");
+                    }
+                    throw be;
                 }
-                let boxDescriptor = host.Reflect.getOwnPropertyDescriptor(boxMime, p);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.getOwnPropertyDescriptor END", p);
-                return boxDescriptor;
             },
 
             /*
@@ -984,19 +1021,29 @@ global = this;
             */
 
             has: function has(boxMime: object, p: PropertyKey): boolean {
-                VERBOSE_DEBUG && DebugBegin("Contextify.has BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.has BEGIN", p);
 
-                if (locallyDefined[p] !== true) {
-                    MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    if (locallyDefined[p] !== true) {
+                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    }
+                    if (localProto !== true) {
+                        MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
+                    }
+
+                    let boxResult = host.Reflect.has(boxMime, p);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.has END", p);
+                    return boxResult;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.has");
+                    } catch (e) {
+                        throw new Error("Contextify.object.has, Internal Error");
+                    }
+                    throw be;
                 }
-                if (localProto !== true) {
-                    MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
-                }
-
-                let boxResult = host.Reflect.has(boxMime, p);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.has END", p);
-                return boxResult;
             },
 
             /*
@@ -1007,29 +1054,39 @@ global = this;
             */
 
             get: function get(boxMime: object, p: PropertyKey, boxReceiverceiver: any): any {
-                VERBOSE_DEBUG && DebugBegin("Contextify.get BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.get BEGIN", p);
 
-                if (p == "Pope!") {
-                    Debug("Is contextify proxy, contains host entity");
-                    return true;
+                    if (p == "Pope!") {
+                        Debug("Is contextify proxy, contains host entity");
+                        return true;
+                    }
+
+
+                    if (locallyDefined[p] !== true) {
+                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    }
+
+                    if (localProto !== true) {
+                        MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
+                    }
+
+
+                    let boxValue = host.Reflect.get(boxMime, p, boxReceiverceiver);
+
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.get END");
+
+                    return boxValue;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.get");
+                    } catch (e) {
+                        throw new Error("Contextify.object.get, Internal Error");
+                    }
+                    throw be;
                 }
-
-
-                if (locallyDefined[p] !== true) {
-                    MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
-                }
-
-                if (localProto !== true) {
-                    MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
-                }
-
-
-                let boxValue = host.Reflect.get(boxMime, p, boxReceiverceiver);
-
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.get END");
-
-                return boxValue;
             },
 
             /*
@@ -1041,79 +1098,89 @@ global = this;
             */
 
             set: function set(boxMime: object, p: PropertyKey, boxValue: any, boxReceiver: any): boolean {
-                VERBOSE_DEBUG && DebugBegin("Contextify.set BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.set BEGIN", p);
 
-                if (locallyDefined[p] !== true) {
-                    MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
-                }
-                if (localProto !== true) {
-                    MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
-                }
-
-                if (boxMime !== boxReceiver) {
-
-                    let mimeHas = host.Reflect.has(boxMime, p);
-                    let boxDecriptor = host.Reflect.getOwnPropertyDescriptor(boxMime, p) as PropertyDescriptor;
-
-                    if (mimeHas && boxDecriptor === undefined) {
-                        // p is not local, but may occur further down
-                        host.Reflect.set(boxMime, p, boxValue, boxReceiver);
-                        return true;
+                    if (locallyDefined[p] !== true) {
+                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    }
+                    if (localProto !== true) {
+                        MaybeSyncAndContextifyPrototype(hostEntity, boxMime, path, policy);
                     }
 
-                    // if boxEntity contains a setter, so does hostMime, but that one is lifted already to the host
+                    if (boxMime !== boxReceiver) {
 
-                    if (boxDecriptor !== undefined && boxDecriptor.set !== undefined) {
-                        // boxEntity/hostMime contains a setter for p
-                        // the setter will in that case do all the conversions
-                        boxDecriptor.set.call(boxReceiver, boxValue);
-                        return true;
-                    }
+                        let mimeHas = host.Reflect.has(boxMime, p);
+                        let boxDecriptor = host.Reflect.getOwnPropertyDescriptor(boxMime, p) as PropertyDescriptor;
 
-                    if (boxDecriptor !== undefined && boxDecriptor.get !== undefined) {
-                        // accessor property that hides all other updates
-                        return true;
-                    }
-
-                    // it seems for arrays it is possible that the lenght property
-                    // puts us in a place where boxReceiver acutally has the property
-                    // and then we can change the descriptor. 
-                    // we handle this by checking if it it actually there and then change only
-                    // the value
-
-                    let boxReceiverDescriptor = host.Reflect.getOwnPropertyDescriptor(boxReceiver, p) as PropertyDescriptor;
-
-                    if (boxReceiverDescriptor === undefined) {
-                        boxReceiverDescriptor = {
-                            writable: true,
-                            enumerable: true,
-                            configurable: true
+                        if (mimeHas && boxDecriptor === undefined) {
+                            // p is not local, but may occur further down
+                            host.Reflect.set(boxMime, p, boxValue, boxReceiver);
+                            return true;
                         }
+
+                        // if boxEntity contains a setter, so does hostMime, but that one is lifted already to the host
+
+                        if (boxDecriptor !== undefined && boxDecriptor.set !== undefined) {
+                            // boxEntity/hostMime contains a setter for p
+                            // the setter will in that case do all the conversions
+                            boxDecriptor.set.call(boxReceiver, boxValue);
+                            return true;
+                        }
+
+                        if (boxDecriptor !== undefined && boxDecriptor.get !== undefined) {
+                            // accessor property that hides all other updates
+                            return true;
+                        }
+
+                        // it seems for arrays it is possible that the lenght property
+                        // puts us in a place where boxReceiver acutally has the property
+                        // and then we can change the descriptor. 
+                        // we handle this by checking if it it actually there and then change only
+                        // the value
+
+                        let boxReceiverDescriptor = host.Reflect.getOwnPropertyDescriptor(boxReceiver, p) as PropertyDescriptor;
+
+                        if (boxReceiverDescriptor === undefined) {
+                            boxReceiverDescriptor = {
+                                writable: true,
+                                enumerable: true,
+                                configurable: true
+                            }
+                        }
+
+                        boxReceiverDescriptor.value = boxValue;
+
+                        VERBOSE_DEBUG && Debug("Contextify.set DEFINING ON RECEIVER");
+                        host.Reflect.defineProperty(boxReceiver, p, boxReceiverDescriptor);
+                        return true;
+
                     }
 
-                    boxReceiverDescriptor.value = boxValue;
+                    let propPolicy = policy.GetProperty(p);
+                    let hostValue = Decontextify(boxValue, `${path}.${host.String(p)}`, propPolicy.WritePolicy);
 
-                    VERBOSE_DEBUG && Debug("Contextify.set DEFINING ON RECEIVER");
-                    host.Reflect.defineProperty(boxReceiver, p, boxReceiverDescriptor);
+                    POLICY_DEBUG && Debug(`Contextify pr set of ${host.String(p)} on ${path} gives ${propPolicy.Write}`);
+
+                    if (!propPolicy.Write) {
+                        host.Reflect.set(boxMime, p, boxValue);
+                        locallyDefined[p] = true;
+                        return true;
+                    }
+
+                    host.Reflect.set(hostEntity, p, hostValue);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.set END", p);
                     return true;
-
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.set");
+                    } catch (e) {
+                        throw new Error("Contextify.object.set, Internal Error");
+                    }
+                    throw be;
                 }
-
-                let propPolicy = policy.GetProperty(p);
-                let hostValue = Decontextify(boxValue, `${path}.${String(p)}`, propPolicy.WritePolicy);
-
-                POLICY_DEBUG && Debug(`Contextify pr set of ${String(p)} on ${path} gives ${propPolicy.Write}`);
-
-                if (!propPolicy.Write) {
-                    host.Reflect.set(boxMime, p, boxValue);
-                    locallyDefined[p] = true;
-                    return true;
-                }
-
-                host.Reflect.set(hostEntity, p, hostValue);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.set END", p);
-                return true;
 
             },
 
@@ -1124,24 +1191,34 @@ global = this;
             */
 
             deleteProperty: function deleteProperty(target: object, p: PropertyKey): boolean {
-                VERBOSE_DEBUG && DebugBegin("Contextify.deleteProperty BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.deleteProperty BEGIN", p);
 
-                let propPolicy = policy.GetProperty(p);
-                POLICY_DEBUG && Debug(`Contextify pr delete of ${String(p)} on ${path} gives ${propPolicy.Write}`);
+                    let propPolicy = policy.GetProperty(p);
+                    POLICY_DEBUG && Debug(`Contextify pr delete of ${host.String(p)} on ${path} gives ${propPolicy.Write}`);
 
-                // We cannot delete read only properties unless we extend the model
-                if (!propPolicy.Write) {
-                    return false;
+                    // We cannot delete read only properties unless we extend the model
+                    if (!propPolicy.Write) {
+                        return false;
+                    }
+
+                    if (locallyDefined[p] === true) {
+                        host.Reflect.deleteProperty(target, p);
+                        locallyDefined[p] = false;
+                    }
+                    let success = host.Reflect.deleteProperty(hostEntity, p);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.deleteProperty END", p);
+                    return success;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.deleteProperty");
+                    } catch (e) {
+                        throw new Error("Contextify.object.deleteProperty, Internal Error");
+                    }
+                    throw be;
                 }
-
-                if (locallyDefined[p] === true) {
-                    host.Reflect.deleteProperty(target, p);
-                    locallyDefined[p] = false;
-                }
-                let success = host.Reflect.deleteProperty(hostEntity, p);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.deleteProperty END", p);
-                return success;
             },
 
             /*
@@ -1155,26 +1232,36 @@ global = this;
             */
 
             defineProperty: function defineProperty(boxMime: object, p: PropertyKey, boxDescriptor: PropertyDescriptor): boolean {
-                VERBOSE_DEBUG && DebugBegin("Contextify.defineProperty BEGIN", p);
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.defineProperty BEGIN", p);
 
-                if (locallyDefined[p] !== true) {
-                    MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
-                }
+                    if (locallyDefined[p] !== true) {
+                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, p, path, policy);
+                    }
 
-                let propPolicy = policy.GetProperty(p);
-                POLICY_DEBUG && Debug(`Contextify pr defineProperty of ${String(p)} on ${path} gives ${propPolicy.Read}`);
+                    let propPolicy = policy.GetProperty(p);
+                    POLICY_DEBUG && Debug(`Contextify pr defineProperty of ${host.String(p)} on ${path} gives ${propPolicy.Read}`);
 
-                if (!propPolicy.Write) {
-                    host.Reflect.defineProperty(boxMime, p, boxDescriptor);
-                    locallyDefined[p] = true;
+                    if (!propPolicy.Write) {
+                        host.Reflect.defineProperty(boxMime, p, boxDescriptor);
+                        locallyDefined[p] = true;
+                        return true;
+                    }
+
+                    let hostDescriptor = Decontextify.Descriptor(boxDescriptor, `${path}.${host.String(p)}`, propPolicy.WritePolicy, propPolicy.definePropertyDescriptor);
+                    host.Reflect.defineProperty(hostEntity, p, hostDescriptor);
+
+                    VERBOSE_DEBUG && DebugEnd("Contextify.defineProperty END", p);
                     return true;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.defineProperty");
+                    } catch (e) {
+                        throw new Error("Contextify.object.defineProperty, Internal Error");
+                    }
+                    throw be;
                 }
-
-                let hostDescriptor = Decontextify.Descriptor(boxDescriptor, `${path}.${String(p)}`, propPolicy.WritePolicy, propPolicy.definePropertyDescriptor);
-                host.Reflect.defineProperty(hostEntity, p, hostDescriptor);
-
-                VERBOSE_DEBUG && DebugEnd("Contextify.defineProperty END", p);
-                return true;
             },
 
             /* DEPRECATED in ES2016 
@@ -1192,17 +1279,27 @@ global = this;
             */
 
             ownKeys: function ownKeys(boxMime: object): PropertyKey[] {
-                VERBOSE_DEBUG && DebugBegin("Contextify.ownKeys BEGIN");
+                try {
+                    VERBOSE_DEBUG && DebugBegin("Contextify.ownKeys BEGIN");
 
-                let hostKeys = host.Reflect.ownKeys(hostEntity);
-                for (let index in hostKeys) {
-                    if (locallyDefined[hostKeys[index]] !== true) {
-                        MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, hostKeys[index], path, policy);
+                    let hostKeys = host.Reflect.ownKeys(hostEntity);
+                    for (let index in hostKeys) {
+                        if (locallyDefined[hostKeys[index]] !== true) {
+                            MaybeSyncAndContextifyOwnProperty(hostEntity, boxMime, hostKeys[index], path, policy);
+                        }
                     }
+                    let boxKeys = host.Reflect.ownKeys(boxMime);
+                    VERBOSE_DEBUG && DebugEnd("Contextify.ownKeys END");
+                    return boxKeys;
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.object.ownKeys");
+                    } catch (e) {
+                        throw new Error("Contextify.object.ownKeys, Internal Error");
+                    }
+                    throw be;
                 }
-                let boxKeys = host.Reflect.ownKeys(boxMime);
-                VERBOSE_DEBUG && DebugEnd("Contextify.ownKeys END");
-                return boxKeys;
             }
         }
     };
@@ -1220,40 +1317,45 @@ global = this;
             The target must be a callable itself. That is, it must be a function object.
             */
             apply(boxMime: Function, boxThisArg: any, boxArgArray?: any): any {
-                VERBOSE_DEBUG && DebugBegin("Contextify.apply BEGIN");
-
-                let callPolicy = policy.Call;
-
-                let allow = false;
                 try {
-                    allow = callPolicy.Allow(boxThisArg, ...boxArgArray);
-                } catch (e) {
-                    throw new SandTrapError(`Policy Error: function guard resulted in ${e.message}`);
-                }
+                    VERBOSE_DEBUG && DebugBegin("Contextify.apply BEGIN");
 
-                POLICY_DEBUG && Debug(`Contextify pr call on ${path} gives ${allow}`);
+                    let callPolicy = policy.Call;
 
-                if (!allow) {
-                    return;
-                }
+                    let allow = false;
+                    try {
+                        allow = callPolicy.Allow(boxThisArg, ...boxArgArray);
+                    } catch (e) {
+                        throw new SandTrapError(`Policy Error: function guard resulted in ${e.message}`);
+                    }
 
-                let hostThisArg = Decontextify(boxThisArg, path);
+                    POLICY_DEBUG && Debug(`Contextify pr call on ${path} gives ${allow}`);
 
-                if (boxArgArray === undefined) {
-                    boxArgArray = [];
-                }
+                    if (!allow) {
+                        return;
+                    }
 
-                let hostArgArray = Decontextify.Arguments(boxArgArray, path, callPolicy);
+                    let hostThisArg = Decontextify(boxThisArg, path);
 
-                try {
+                    if (boxArgArray === undefined) {
+                        boxArgArray = [];
+                    }
+
+                    let hostArgArray = Decontextify.Arguments(boxArgArray, path, callPolicy);
+
                     let hostResult = host.Reflect.apply(hostFunction, hostThisArg, hostArgArray);
                     let boxResult = Contextify(hostResult, path, callPolicy.Result);
 
                     VERBOSE_DEBUG && DebugEnd("Contextify.apply END");
                     return boxResult;
-                } catch (hostException) {
-                    VERBOSE_DEBUG && DebugEnd("Contextify.apply EXCEPTION");
-                    throw Contextify(hostException, path);
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.function.apply");
+                    } catch (e) {
+                        throw new Error("Contextify.function.apply, Internal Error");
+                    }
+                    throw be;
                 }
             },
 
@@ -1263,42 +1365,47 @@ global = this;
             The result must be an Object.
             */
             construct(boxMime: Function, boxArgArray: any, boxNewTarget?: any): object {
-                VERBOSE_DEBUG && DebugBegin("Contextify.construct BEGIN");
-
-
-                let constructPolicy = policy.Construct;
-
-                let allow = false;
                 try {
-                    allow = constructPolicy.Allow(...boxArgArray);
-                } catch (e) {
-                    throw new SandTrapError(`Policy Error: construct guard resulted in ${e.message}`);
-                }
+                    VERBOSE_DEBUG && DebugBegin("Contextify.construct BEGIN");
 
-                POLICY_DEBUG && Debug(`Contextify pr call on ${path} gives ${allow}`);
 
-                if (!allow) {
-                    return {};
-                }
+                    let constructPolicy = policy.Construct;
 
-                if (boxArgArray === undefined) {
-                    boxArgArray = [];
-                }
+                    let allow = false;
+                    try {
+                        allow = constructPolicy.Allow(...boxArgArray);
+                    } catch (e) {
+                        throw new SandTrapError(`Policy Error: construct guard resulted in ${e.message}`);
+                    }
 
-                let hostArgArray = Decontextify.Arguments(boxArgArray, path, constructPolicy);
+                    POLICY_DEBUG && Debug(`Contextify pr call on ${path} gives ${allow}`);
 
-                // TODO: piggybacking on thisArg
-                let hostNewTarget = Decontextify(boxNewTarget, path, constructPolicy.ThisArg);
+                    if (!allow) {
+                        return {};
+                    }
 
-                try {
+                    if (boxArgArray === undefined) {
+                        boxArgArray = [];
+                    }
+
+                    let hostArgArray = Decontextify.Arguments(boxArgArray, path, constructPolicy);
+
+                    // TODO: piggybacking on thisArg
+                    let hostNewTarget = Decontextify(boxNewTarget, path, constructPolicy.ThisArg);
+
                     let hostResult = host.Reflect.construct(hostFunction, hostArgArray, hostNewTarget);
                     let boxResult = Contextify(hostResult, path, constructPolicy.Result);
 
                     VERBOSE_DEBUG && DebugEnd("Contextify.construct END");
                     return boxResult;
-                } catch (hostException) {
-                    VERBOSE_DEBUG && DebugEnd("Contextify.construct EXCEPTION");
-                    throw Contextify(hostException, path);
+                } catch (he) {
+                    let be;
+                    try {
+                        be = Contextify(he, "Contextify.function.construct");
+                    } catch (e) {
+                        throw new Error("Contextify.function.construct, Internal Error");
+                    }
+                    throw be;
                 }
             }
         }
@@ -1328,6 +1435,8 @@ global = this;
     ConnectPrimordial(Array, host.Array);
     ConnectPrimordial(Date, host.Date);
 
+    // @ts-ignore
+    Error.stackTraceLimit = undefined;
     ConnectPrimordial(Error, host.Error);
     Object.freeze(Error);
 

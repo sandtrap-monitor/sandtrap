@@ -1074,7 +1074,6 @@ export class Policy implements IPolicy {
             options: defaults,
             onerror: "warn",
             global: "global",
-            allowEval: true,
             manifest: {}
         };
 
@@ -1087,10 +1086,6 @@ export class Policy implements IPolicy {
     }
 
     // policy behavior
-
-    get AllowEval(): boolean {
-        return !!this.Data.allowEval;
-    }
 
     get Throw(): boolean {
         return this.Data.onerror === "throw";

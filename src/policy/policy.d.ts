@@ -139,7 +139,6 @@ interface IPolicy {
     Throw: boolean;
     Warn: boolean;
     Silent: boolean;
-    AllowEval: boolean;
 
     ReportViolation(msg: string): void;
 
